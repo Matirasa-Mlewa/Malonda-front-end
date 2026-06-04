@@ -1,13 +1,19 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useGuestGuard } from '../../context/GuestGuardContext';
 
 export default function OtpScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const { verifyOtp, login } = useAuth();
-  const phone = location.state?.phone || '';
+  const { clearIntent } = useGuestGuard();
+
+  const phone  = location.state?.phone || '';
   const password = location.state?.password || '';
+  const from   = location.state?.from || '/';
+  const action = location.state?.action;
+
   const [digits, setDigits] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const inputs = useRef([]);
@@ -31,7 +37,11 @@ export default function OtpScreen() {
     const verifyRes = await verifyOtp(phone, otp);
     if (verifyRes.success) {
       const loginRes = await login(phone, password);
-      if (loginRes.success) navigate('/');
+      if (loginRes.success) {
+        clearIntent();
+        // Return user to where they were trying to go
+        navigate(from || '/', { replace: true });
+      }
     }
     setLoading(false);
   };
@@ -61,16 +71,21 @@ export default function OtpScreen() {
               onChange={e => handleChange(i, e.target.value)}
               onKeyDown={e => handleKeyDown(i, e)}
               style={{
-                width: 46, height: 56, border: `2px solid ${d ? 'var(--green)' : 'var(--gray-border)'}`,
+                width: 46, height: 56,
+                border: `2px solid ${d ? 'var(--green)' : 'var(--gray-border)'}`,
                 borderRadius: 10, textAlign: 'center', fontSize: 24, fontWeight: 700,
-                outline: 'none', background: d ? 'var(--green-light)' : 'white'
+                outline: 'none', background: d ? 'var(--green-light)' : 'white',
               }}
             />
           ))}
         </div>
 
-        <button className="btn btn-primary" onClick={handleVerify} disabled={loading || digits.join('').length < 6}>
-          {loading ? 'Verifying…' : 'Verify & Log In'}
+        <button
+          className="btn btn-primary"
+          onClick={handleVerify}
+          disabled={loading || digits.join('').length < 6}
+        >
+          {loading ? 'Verifying…' : 'Verify & Continue'}
         </button>
 
         <p style={{ marginTop: 18, color: 'var(--text3)', fontSize: 13 }}>
