@@ -1,8 +1,8 @@
 {
-  "name": "malonda",
+  "name": "malonda-app",
   "version": "1.0.0",
   "private": true,
-  "description": "Malonda - Trusted Buying & Selling in Malawi",
+  "description": "Malonda App - Trusted Buying & Selling in Malawi",
   "engines": {
     "node": "20.x"
   },
